@@ -1,10 +1,37 @@
 const User = require("../models/User");
 const {  verifyToken, verifyTokenAndAuthorization, verifyTokenAndAdmin,} = require("./middlewear/middlewears");
-
+const CryptoJS = require("crypto-js");
 const router = require("express").Router();
 
+//create
+
+router.post("/create", async (req, res) => {
+  console.log("create",req.body);
+  const newUser = new User({
+    username: req.body.username,
+    fullname:req.body.fullname,
+    email: req.body.email,
+    password: CryptoJS.AES.encrypt(
+      req.body.password,
+      process.env.PASS_SEC
+    ).toString(),
+    phone:req.body.phone,
+    Address:req.body.Address,
+    gender:req.body.gender,
+    isAdmin:req.body.isAdmin,
+    img:req.body.img
+  });
+  
+  try {
+    const savedUser = await newUser.save();
+    return  res.status(201).json(savedUser);
+  } catch (err) {
+    return res.status(500).json(err);
+  }
+});
 //UPDATE
 router.put("/:id", verifyTokenAndAuthorization, async (req, res) => {
+  console.log(req.body);
   if (req.body.password) {
     req.body.password = CryptoJS.AES.encrypt(
       req.body.password,
